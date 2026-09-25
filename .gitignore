@@ -1,0 +1,14 @@
+node_modules/
+.env
+*.log
+*.pid
+dist/
+build/
+ml-service/model/*.joblib
+ml-service/model/*.pkl
+ml-service/synthetic_training_data.csv
+ml-service/__pycache__/
+ml-service/venv/
+backend/_mongo_uri.txt
+backend/_dev_mongo.js
+.DS_Store
