@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 
 const connectDB = require('./config/db');
+const { getCorsOrigin } = require('./config/corsOrigins');
 const { initSocket } = require('./sockets');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
@@ -18,7 +19,7 @@ const reportsRoutes = require('./routes/reports.routes');
 const productivityRoutes = require('./routes/productivity.routes');
 
 const app = express();
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+app.use(cors({ origin: getCorsOrigin() }));
 app.use(express.json());
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));

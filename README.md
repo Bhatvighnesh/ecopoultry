@@ -87,6 +87,8 @@ Log in with the seeded admin account, then use **Users** (Admin only) to create 
 | `ML_SERVICE_URL` | Base URL of the Flask classifier service |
 | `STALE_DATA_MS` | If a node hasn't posted within this window, dashboard flags it stale (default 20000) |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | Used only by `npm run seed:admin` |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | Twilio credentials for WhatsApp alerts (optional - critical alerts are skipped silently if unset) |
+| `TWILIO_WHATSAPP_FROM` / `TWILIO_WHATSAPP_TO` | Twilio WhatsApp sandbox number and the recipient's WhatsApp number, both in `whatsapp:+E164` format |
 
 ### frontend/.env
 | Variable | Purpose |

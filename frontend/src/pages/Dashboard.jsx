@@ -1,5 +1,20 @@
 import { useMemo } from 'react';
-import { Thermometer, Droplets, Wind, Activity, Fan, Trash2, Flame, Sprout, Egg, CloudFog } from 'lucide-react';
+import {
+  Thermometer,
+  Droplets,
+  Wind,
+  Activity,
+  Fan,
+  Trash2,
+  Flame,
+  Sprout,
+  Egg,
+  CloudFog,
+  ShieldCheck,
+  AlertTriangle,
+  AlertOctagon,
+  Radio,
+} from 'lucide-react';
 import { useLiveData } from '../context/LiveDataContext';
 import { useAuth } from '../context/AuthContext';
 import StatCard from '../components/StatCard';
@@ -10,8 +25,21 @@ import apiClient from '../api/client';
 
 const AMMONIA_ZONE_STATUS = { Low: 'safe', Moderate: 'warning', High: 'critical' };
 
+const HERO_META = {
+  safe: { icon: ShieldCheck, label: 'All systems normal' },
+  warning: { icon: AlertTriangle, label: 'Attention needed' },
+  critical: { icon: AlertOctagon, label: 'Critical condition detected' },
+};
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
 export default function Dashboard() {
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const {
     environment,
     ammoniaZone,
@@ -33,8 +61,29 @@ export default function Dashboard() {
     await apiClient.post('/api/actuators/relay', { device: 'fan', state: next });
   }
 
+  const heroMeta = environment ? HERO_META[environment.status] : null;
+  const HeroIcon = heroMeta ? heroMeta.icon : Radio;
+
   return (
     <div className="page">
+      <section className={`dashboard-hero ${environment ? `hero-${environment.status}` : 'hero-pending'}`}>
+        <span className="dashboard-hero-icon">
+          <HeroIcon size={24} />
+        </span>
+        <div>
+          <div className="dashboard-hero-greeting">
+            {greeting()}
+            {user?.name ? `, ${user.name}` : ''}
+          </div>
+          <div className="dashboard-hero-status">
+            {heroMeta ? heroMeta.label : 'Waiting for the first sensor reading...'}
+          </div>
+        </div>
+        <span className="dashboard-hero-time">
+          {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+        </span>
+      </section>
+
       <AlertBanner alerts={alerts} />
 
       <section>

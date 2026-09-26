@@ -12,6 +12,11 @@ const BASE_URL = process.argv.includes('--url')
   ? process.argv[process.argv.indexOf('--url') + 1]
   : process.env.SIMULATOR_TARGET_URL || 'http://localhost:5000';
 
+// Skip fake environment readings when real hardware (e.g. an ESP32 coop node)
+// is already posting temp/humidity/gas - avoids fighting over the fan relay
+// and mixing fake spikes into a real live chart.
+const SKIP_ENV = process.argv.includes('--no-env');
+
 let feedWeight = 5000; // grams in the tray
 let wasteWeight = 500; // grams accumulated
 let tick = 0;
@@ -72,9 +77,13 @@ async function maybePostEgg() {
 
 async function loop() {
   tick += 1;
-  await Promise.all([postEnvironment(), postFeed(), postWaste(), maybePostEgg()]);
+  const tasks = [postFeed(), postWaste(), maybePostEgg()];
+  if (!SKIP_ENV) tasks.push(postEnvironment());
+  await Promise.all(tasks);
 }
 
-console.log(`[simulator] posting to ${BASE_URL} every 5s (Ctrl+C to stop)`);
+console.log(
+  `[simulator] posting to ${BASE_URL} every 5s${SKIP_ENV ? ' (env skipped - real hardware owns it)' : ''} (Ctrl+C to stop)`
+);
 loop();
 setInterval(loop, 5000);
