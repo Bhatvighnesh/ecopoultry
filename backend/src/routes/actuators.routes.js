@@ -6,6 +6,11 @@ const ctrl = require('../controllers/actuators.controller');
 
 router.get('/', requireAuth, ctrl.getStates);
 
+// Open, no-auth endpoint for ESP32 nodes to poll the fan/heater state and
+// drive their relay accordingly - mirrors the sensor ingestion endpoints,
+// which are intentionally left open for the same reason (see README).
+router.get('/device-state', ctrl.getStates);
+
 router.post(
   '/relay',
   requireAuth,

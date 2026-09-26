@@ -106,12 +106,14 @@ All secrets are environment-variable driven; `.env` files are gitignored.
 | Egg collection sensor | IR break-beam | `POST /api/sensors/egg-event` | one event per egg, as it happens |
 | Egg freshness sensor | Dedicated MQ135, held to an egg by a farmer | `POST /api/sensors/freshness-test` | on demand (physical trigger, requires farmer login) |
 | Backend → coop node | Relay (fan/heater) | `POST /api/actuators/relay` (also called internally on every critical reading) | on state change only |
+| Coop node → backend | Relay state poll | `GET /api/actuators/device-state` | every 5s (coop node polls this and drives its relay pin to match) |
 
-Ingestion endpoints (`/environment`, `/feed`, `/waste`, `/egg-event`) are intentionally left open
-(no JWT) because ESP32 nodes can't practically hold a user session. **For a real deployment,
-put a shared device API key check in front of them** (a small middleware checking a header
-against an env var) — this was left out here to keep the IoT-facing surface minimal for a
-class project, but is called out explicitly as a gap.
+Ingestion endpoints (`/environment`, `/feed`, `/waste`, `/egg-event`) and the actuator state poll
+(`/actuators/device-state`) are intentionally left open (no JWT) because ESP32 nodes can't
+practically hold a user session. **For a real deployment, put a shared device API key check in
+front of them** (a small middleware checking a header against an env var) — this was left out
+here to keep the IoT-facing surface minimal for a class project, but is called out explicitly as
+a gap.
 
 ## How the core calculations work
 
