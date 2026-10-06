@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Radio } from 'lucide-react';
 import apiClient from '../api/client';
 
-const POLL_MS = 5000;
+const POLL_MS = 6000;
 
 function timeAgo(iso) {
   const seconds = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
