@@ -8,6 +8,8 @@ import {
   Users as UsersIcon,
   LogOut,
   Leaf,
+  Radio,
+  History,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLiveData } from '../context/LiveDataContext';
@@ -58,6 +60,10 @@ export default function Sidebar({ open, onNavigate }) {
           Alerts
           {unacknowledgedCritical > 0 && <span className="nav-badge">{unacknowledgedCritical}</span>}
         </NavLink>
+        <NavLink to="/devices" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} onClick={handleClick}>
+          <Radio size={18} />
+          Devices
+        </NavLink>
         <NavLink to="/reports" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} onClick={handleClick}>
           <FileDown size={18} />
           Reports
@@ -66,6 +72,10 @@ export default function Sidebar({ open, onNavigate }) {
         {isAdmin && (
           <>
             <div className="sidebar-section-label">Admin</div>
+            <NavLink to="/audit" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} onClick={handleClick}>
+              <History size={18} />
+              Audit Log
+            </NavLink>
             <NavLink to="/settings" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} onClick={handleClick}>
               <SlidersHorizontal size={18} />
               Settings

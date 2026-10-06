@@ -14,6 +14,8 @@ import Alerts from './pages/Alerts';
 import Reports from './pages/Reports';
 import SettingsPage from './pages/Settings';
 import Users from './pages/Users';
+import Devices from './pages/Devices';
+import AuditLog from './pages/AuditLog';
 
 function AppLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -82,6 +84,26 @@ function AuthedApp() {
             <ProtectedRoute>
               <AppLayout>
                 <Reports />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/devices"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <Devices />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/audit"
+          element={
+            <ProtectedRoute adminOnly>
+              <AppLayout>
+                <AuditLog />
               </AppLayout>
             </ProtectedRoute>
           }

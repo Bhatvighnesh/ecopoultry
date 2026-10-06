@@ -17,6 +17,8 @@ const dashboardRoutes = require('./routes/dashboard.routes');
 const alertsRoutes = require('./routes/alerts.routes');
 const reportsRoutes = require('./routes/reports.routes');
 const productivityRoutes = require('./routes/productivity.routes');
+const devicesRoutes = require('./routes/devices.routes');
+const auditRoutes = require('./routes/audit.routes');
 
 const app = express();
 app.use(cors({ origin: getCorsOrigin() }));
@@ -33,6 +35,8 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/alerts', alertsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/productivity', productivityRoutes);
+app.use('/api/devices', devicesRoutes);
+app.use('/api/audit', auditRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

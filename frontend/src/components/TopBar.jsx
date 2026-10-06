@@ -6,6 +6,8 @@ const TITLES = {
   '/dashboard': 'Dashboard',
   '/productivity': 'Productivity',
   '/alerts': 'Alerts',
+  '/devices': 'Devices',
+  '/audit': 'Audit Log',
   '/reports': 'Reports',
   '/settings': 'Settings',
   '/users': 'Users',
