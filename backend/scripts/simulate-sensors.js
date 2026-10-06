@@ -33,6 +33,7 @@ async function postEnvironment() {
     humidity: rand(45, 70),
     gas: spike ? rand(2400, 3200) : rand(400, 1300),
     activity: rand(2, 20),
+    nodeId: 'demo-coop-1',
   };
   try {
     const { data } = await axios.post(`${BASE_URL}/api/sensors/environment`, payload);
@@ -48,7 +49,7 @@ async function postFeed() {
   feedWeight -= rand(0, 0.9); // ~0.45g/tick avg * 17280 ticks/day ~= 7.8kg/day
   if (feedWeight < 500) feedWeight = 5000; // refill
   try {
-    await axios.post(`${BASE_URL}/api/sensors/feed`, { weight: Math.max(feedWeight, 0) });
+    await axios.post(`${BASE_URL}/api/sensors/feed`, { weight: Math.max(feedWeight, 0), nodeId: 'demo-feed-1' });
   } catch (err) {
     console.error('[feed] failed:', err.message);
   }
@@ -58,7 +59,7 @@ async function postWaste() {
   wasteWeight += rand(0, 1.2); // ~0.6g/tick avg * 17280 ticks/day ~= 10.4kg/day
   if (wasteWeight > 4000) wasteWeight = 200; // tray emptied
   try {
-    await axios.post(`${BASE_URL}/api/sensors/waste`, { weight: wasteWeight });
+    await axios.post(`${BASE_URL}/api/sensors/waste`, { weight: wasteWeight, nodeId: 'demo-waste-1' });
   } catch (err) {
     console.error('[waste] failed:', err.message);
   }
@@ -67,7 +68,7 @@ async function postWaste() {
 async function maybePostEgg() {
   if (Math.random() < 0.15) {
     try {
-      await axios.post(`${BASE_URL}/api/sensors/egg-event`, {});
+      await axios.post(`${BASE_URL}/api/sensors/egg-event`, { nodeId: 'demo-egg-1' });
       console.log('[egg] event fired');
     } catch (err) {
       console.error('[egg] failed:', err.message);

@@ -11,6 +11,7 @@ const productivityPredictionSchema = new mongoose.Schema(
       activity: { type: Number, required: true },
       feedTrend: { type: Number, required: true }, // recent feed consumption rate, g/hr
     },
+    source: { type: String, enum: ['live', 'demo'], default: 'live' },
     classification: { type: String, enum: ['Healthy', 'Watch', 'Critical'], required: true },
     confidence: { type: Number, required: true, min: 0, max: 1 },
     featureImportances: {

@@ -10,6 +10,7 @@ import {
   Leaf,
   Radio,
   History,
+  FlaskConical,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLiveData } from '../context/LiveDataContext';
@@ -63,6 +64,10 @@ export default function Sidebar({ open, onNavigate }) {
         <NavLink to="/devices" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} onClick={handleClick}>
           <Radio size={18} />
           Devices
+        </NavLink>
+        <NavLink to="/demo" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} onClick={handleClick}>
+          <FlaskConical size={18} />
+          Synthetic Data
         </NavLink>
         <NavLink to="/reports" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} onClick={handleClick}>
           <FileDown size={18} />

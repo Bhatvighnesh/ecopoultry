@@ -6,16 +6,19 @@ const { getLiveWasteRate } = require('../services/waste.service');
 const { getHenDayForPeriod } = require('../services/productivity.service');
 const { getAllCurrentStates } = require('../services/actuator.service');
 const { getAllStatuses } = require('../services/staleData.service');
+const { nodeIdFilter } = require('../services/source');
 
 /** One aggregated snapshot for the live dashboard. Everything here is derived
  * from continuously-arriving sensor data - nothing is user-entered. */
 async function getSummary(req, res) {
   const settings = await getSettings();
+  const source = req.query.source === 'demo' ? 'demo' : 'live';
+  const filter = nodeIdFilter(source);
 
   const [latestEnv, latestPrediction, wasteRate, actuatorStates] = await Promise.all([
-    EnvironmentReading.findOne().sort({ createdAt: -1 }).lean(),
-    ProductivityPrediction.findOne().sort({ createdAt: -1 }).lean(),
-    getLiveWasteRate(),
+    EnvironmentReading.findOne(filter).sort({ createdAt: -1 }).lean(),
+    ProductivityPrediction.findOne({ source }).sort({ createdAt: -1 }).lean(),
+    getLiveWasteRate(2, filter),
     getAllCurrentStates(),
   ]);
 
@@ -25,7 +28,7 @@ async function getSummary(req, res) {
 
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
-  const henDay = await getHenDayForPeriod(startOfToday, new Date(), settings.flockSize);
+  const henDay = await getHenDayForPeriod(startOfToday, new Date(), settings.flockSize, filter);
 
   const staleness = getAllStatuses(['environment', 'feed', 'waste', 'egg']);
 

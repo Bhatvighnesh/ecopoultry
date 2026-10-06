@@ -12,7 +12,9 @@ function pushCapped(arr, item, cap = MAX_HISTORY_POINTS) {
   return next.length > cap ? next.slice(next.length - cap) : next;
 }
 
-export function LiveDataProvider({ children }) {
+const sourceOfNode = (nodeId) => (/^demo-/.test(nodeId || '') ? 'demo' : 'live');
+
+export function LiveDataProvider({ source = 'live', children }) {
   const { user } = useAuth();
   const socketRef = useRef(null);
 
@@ -34,7 +36,7 @@ export function LiveDataProvider({ children }) {
   }, []);
 
   const refreshSummary = useCallback(async () => {
-    const { data } = await apiClient.get('/api/dashboard/summary');
+    const { data } = await apiClient.get('/api/dashboard/summary', { params: { source } });
     setEnvironment(data.environment);
     setAmmoniaZone(data.ammoniaZone);
     setWasteRate(data.wasteRate);
@@ -44,12 +46,14 @@ export function LiveDataProvider({ children }) {
     setStaleness(data.staleness);
     setSettings(data.settings);
     if (data.environment) setEnvHistory((h) => pushCapped(h, data.environment));
-  }, []);
+  }, [source]);
 
   useEffect(() => {
     if (!user) return undefined;
 
     refreshSummary().catch((err) => console.error('Failed to load dashboard summary', err));
+
+    const isMine = (nodeId) => sourceOfNode(nodeId) === source;
 
     const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
       transports: ['websocket', 'polling'],
@@ -60,20 +64,27 @@ export function LiveDataProvider({ children }) {
     socket.on('disconnect', () => setConnected(false));
 
     socket.on('environment:new', ({ reading, ammoniaZone: zone }) => {
+      if (!isMine(reading.nodeId)) return;
       setEnvironment(reading);
       setAmmoniaZone(zone);
       setEnvHistory((h) => pushCapped(h, reading));
     });
 
-    socket.on('waste:update', ({ rate }) => setWasteRate(rate));
+    socket.on('waste:update', ({ reading, rate }) => {
+      if (isMine(reading.nodeId)) setWasteRate(rate);
+    });
 
-    socket.on('egg:new', ({ henDay: hd }) => setHenDay(hd));
+    socket.on('egg:new', ({ event, henDay: hd }) => {
+      if (isMine(event.nodeId)) setHenDay(hd);
+    });
 
     socket.on('actuator:update', (entry) => {
       setActuatorStates((prev) => ({ ...prev, [entry.device]: entry.state }));
     });
 
-    socket.on('productivity:new', (prediction) => setProductivity(prediction));
+    socket.on('productivity:new', (prediction) => {
+      if (prediction.source === source) setProductivity(prediction);
+    });
 
     socket.on('alert:new', (alert) => {
       setAlerts((a) => [alert, ...a].slice(0, 50));
@@ -90,7 +101,7 @@ export function LiveDataProvider({ children }) {
       socket.disconnect();
       clearInterval(interval);
     };
-  }, [user, refreshSummary]);
+  }, [user, source, refreshSummary]);
 
   const value = {
     environment,

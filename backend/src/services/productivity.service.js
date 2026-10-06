@@ -23,8 +23,8 @@ async function getFCRForPeriod(from, to, weightGainKg) {
   return { feedConsumedKg: Number(feedConsumedKg.toFixed(3)), weightGainKg, ...result };
 }
 
-async function getHenDayForPeriod(from, to, flockSize) {
-  const eggEventCount = await EggEvent.countDocuments({ createdAt: { $gte: from, $lte: to } });
+async function getHenDayForPeriod(from, to, flockSize, filter = {}) {
+  const eggEventCount = await EggEvent.countDocuments({ createdAt: { $gte: from, $lte: to }, ...filter });
   const daysElapsed = Math.max((to - from) / (1000 * 60 * 60 * 24), 1 / 24);
   const henDayPercent = computeHenDayPercent(eggEventCount, flockSize, daysElapsed);
   return { eggEventCount, daysElapsed: Number(daysElapsed.toFixed(3)), henDayPercent };
@@ -34,9 +34,9 @@ async function getHenDayForPeriod(from, to, flockSize) {
  * Feature fed to the ML classifier: recent feed consumption rate (g/hr) over
  * a short trailing window. A falling rate signals declining intake.
  */
-async function getRecentFeedTrend(windowHours = 1) {
+async function getRecentFeedTrend(windowHours = 1, filter = {}) {
   const since = new Date(Date.now() - windowHours * 60 * 60 * 1000);
-  const readings = await FeedReading.find({ createdAt: { $gte: since } })
+  const readings = await FeedReading.find({ createdAt: { $gte: since }, ...filter })
     .sort({ createdAt: 1 })
     .lean();
   if (readings.length < 2) return 0;

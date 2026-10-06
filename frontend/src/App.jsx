@@ -89,6 +89,18 @@ function AuthedApp() {
           }
         />
         <Route
+          path="/demo"
+          element={
+            <ProtectedRoute>
+              <LiveDataProvider source="demo">
+                <AppLayout>
+                  <Dashboard />
+                </AppLayout>
+              </LiveDataProvider>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/devices"
           element={
             <ProtectedRoute>

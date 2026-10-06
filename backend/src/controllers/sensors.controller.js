@@ -17,10 +17,13 @@ const { predictProductivity } = require('../services/ml.service');
 const { raiseAlert } = require('../services/alert.service');
 const { commandActuator } = require('../services/actuator.service');
 const { markSeen } = require('../services/staleData.service');
+const { sourceOf, nodeIdFilter } = require('../services/source');
 const { getIO } = require('../sockets');
 
 async function postEnvironment(req, res) {
   const { temperature, humidity, gas, activity, nodeId } = req.body;
+  const nodeIdValue = nodeId || 'coop-1';
+  const source = sourceOf(nodeIdValue);
   const settings = await getSettings();
   const status = classifyEnvironmentStatus({ temperature, humidity, gas }, settings.envThresholds);
 
@@ -30,7 +33,7 @@ async function postEnvironment(req, res) {
     gas,
     activity,
     status,
-    nodeId: nodeId || 'coop-1',
+    nodeId: nodeIdValue,
   });
   markSeen('environment');
 
@@ -60,11 +63,12 @@ async function postEnvironment(req, res) {
   }
 
   // Fire the ML classifier on every new environment reading.
-  const feedTrend = await getRecentFeedTrend();
+  const feedTrend = await getRecentFeedTrend(1, nodeIdFilter(source));
   const features = { temperature, humidity, gas, activity, feedTrend };
   const prediction = await predictProductivity(features);
   if (prediction) {
     const saved = await ProductivityPrediction.create({
+      source,
       features,
       classification: prediction.classification,
       confidence: prediction.confidence,
@@ -95,22 +99,29 @@ async function postFeed(req, res) {
 
 async function postWaste(req, res) {
   const { weight, nodeId } = req.body;
-  const reading = await WasteReading.create({ weight, nodeId: nodeId || 'waste-tray-1' });
+  const nodeIdValue = nodeId || 'waste-tray-1';
+  const reading = await WasteReading.create({ weight, nodeId: nodeIdValue });
   markSeen('waste');
-  const rate = await getLiveWasteRate();
+  const rate = await getLiveWasteRate(2, nodeIdFilter(sourceOf(nodeIdValue)));
   getIO().emit('waste:update', { reading, rate });
   res.status(201).json({ reading, rate });
 }
 
 async function postEggEvent(req, res) {
   const { nodeId } = req.body;
-  const event = await EggEvent.create({ nodeId: nodeId || 'egg-sensor-1' });
+  const nodeIdValue = nodeId || 'egg-sensor-1';
+  const event = await EggEvent.create({ nodeId: nodeIdValue });
   markSeen('egg');
 
   const settings = await getSettings();
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
-  const henDay = await getHenDayForPeriod(startOfToday, new Date(), settings.flockSize);
+  const henDay = await getHenDayForPeriod(
+    startOfToday,
+    new Date(),
+    settings.flockSize,
+    nodeIdFilter(sourceOf(nodeIdValue))
+  );
 
   getIO().emit('egg:new', { event, henDay });
   res.status(201).json({ event, henDay });

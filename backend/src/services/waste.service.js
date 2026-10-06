@@ -55,9 +55,9 @@ function computeWasteRate(readingsAscending, windowHours) {
 }
 
 /** Live waste rate over a short recent window (default: last 2 hours). */
-async function getLiveWasteRate(windowHours = 2) {
+async function getLiveWasteRate(windowHours = 2, filter = {}) {
   const since = new Date(Date.now() - windowHours * 60 * 60 * 1000);
-  const readings = await WasteReading.find({ createdAt: { $gte: since } })
+  const readings = await WasteReading.find({ createdAt: { $gte: since }, ...filter })
     .sort({ createdAt: 1 })
     .lean();
   const actualHours =
@@ -68,8 +68,8 @@ async function getLiveWasteRate(windowHours = 2) {
 }
 
 /** Total feed consumed (kg) between two dates, auto-summed from tray drops. */
-async function getFeedConsumedKg(from, to) {
-  const readings = await FeedReading.find({ createdAt: { $gte: from, $lte: to } })
+async function getFeedConsumedKg(from, to, filter = {}) {
+  const readings = await FeedReading.find({ createdAt: { $gte: from, $lte: to }, ...filter })
     .sort({ createdAt: 1 })
     .lean();
   const grams = sumNegativeDeltas(readings);
