@@ -26,8 +26,8 @@ function rand(min, max) {
 }
 
 async function postEnvironment() {
-  // Occasionally spike gas/temperature to demonstrate the closed-loop alert + fan response.
-  const spike = tick % 12 === 0;
+  // Spike gas/temperature every 15s (every 3rd 5s tick) to demonstrate the closed-loop alert + fan response.
+  const spike = tick % 3 === 0;
   const payload = {
     temperature: spike ? rand(37, 41) : rand(24, 31),
     humidity: rand(45, 70),

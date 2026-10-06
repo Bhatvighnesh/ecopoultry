@@ -14,6 +14,9 @@ import {
   AlertTriangle,
   AlertOctagon,
   Radio,
+  HeartPulse,
+  ShieldAlert,
+  ShieldX,
 } from 'lucide-react';
 import { useLiveData } from '../context/LiveDataContext';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +27,9 @@ import LiveChart from '../components/LiveChart';
 import apiClient from '../api/client';
 
 const AMMONIA_ZONE_STATUS = { Low: 'safe', Moderate: 'warning', High: 'critical' };
+
+const PRED_STATUS = { Healthy: 'safe', Watch: 'warning', Critical: 'critical' };
+const PRED_ICON = { Healthy: ShieldCheck, Watch: ShieldAlert, Critical: ShieldX };
 
 const HERO_META = {
   safe: { icon: ShieldCheck, label: 'All systems normal' },
@@ -49,6 +55,7 @@ export default function Dashboard() {
     actuatorStates,
     staleness,
     alerts,
+    productivity,
   } = useLiveData();
 
   const chartLabels = useMemo(
@@ -195,6 +202,49 @@ export default function Dashboard() {
             icon={Egg}
           />
         </div>
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <h2>
+            <HeartPulse size={18} /> Live Flock Status (ML Classifier)
+          </h2>
+        </div>
+        {productivity ? (
+          <>
+            <div className={`classification-hero stat-${PRED_STATUS[productivity.classification]}`}>
+              <span className="classification-hero-icon">
+                {(() => {
+                  const PredIcon = PRED_ICON[productivity.classification];
+                  return PredIcon ? <PredIcon size={22} /> : null;
+                })()}
+              </span>
+              <div>
+                <div className="classification-hero-title">{productivity.classification}</div>
+                <div className="classification-hero-sub">
+                  {(productivity.confidence * 100).toFixed(0)}% confidence
+                </div>
+              </div>
+            </div>
+            {productivity.featureImportances && (
+              <div className="importance-bars">
+                {Object.entries(productivity.featureImportances)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([key, val]) => (
+                    <div key={key} className="importance-row">
+                      <span className="importance-label">{key}</span>
+                      <div className="importance-track">
+                        <div className="importance-fill" style={{ width: `${val * 100}%` }} />
+                      </div>
+                      <span className="importance-pct">{(val * 100).toFixed(0)}%</span>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="empty-state">No classification yet.</div>
+        )}
       </section>
     </div>
   );
