@@ -62,31 +62,36 @@ async function postEnvironment(req, res) {
     });
   }
 
-  // Fire the ML classifier on every new environment reading.
-  const feedTrend = await getRecentFeedTrend(1, nodeIdFilter(source));
-  const features = { temperature, humidity, gas, activity, feedTrend };
-  const prediction = await predictProductivity(features);
-  if (prediction) {
-    const saved = await ProductivityPrediction.create({
-      source,
-      features,
-      classification: prediction.classification,
-      confidence: prediction.confidence,
-      featureImportances: prediction.featureImportances,
-    });
-    io.emit('productivity:new', saved);
-
-    if (prediction.classification === 'Critical') {
-      await raiseAlert(io, {
-        type: 'productivity',
-        severity: 'critical',
-        message: `ML classifier flagged flock status as Critical (confidence ${(prediction.confidence * 100).toFixed(0)}%)`,
-        source: 'ml-classifier',
-      });
-    }
-  }
-
   res.status(201).json({ reading, status, ammoniaZone });
+
+  classifyEnvironment({ io, source, base: { temperature, humidity, gas, activity } }).catch((err) =>
+    console.error('[ml] classification failed:', err.message)
+  );
+}
+
+async function classifyEnvironment({ io, source, base }) {
+  const feedTrend = await getRecentFeedTrend(1, nodeIdFilter(source));
+  const features = { ...base, feedTrend };
+  const prediction = await predictProductivity(features);
+  if (!prediction) return;
+
+  const saved = await ProductivityPrediction.create({
+    source,
+    features,
+    classification: prediction.classification,
+    confidence: prediction.confidence,
+    featureImportances: prediction.featureImportances,
+  });
+  io.emit('productivity:new', saved);
+
+  if (prediction.classification === 'Critical') {
+    await raiseAlert(io, {
+      type: 'productivity',
+      severity: 'critical',
+      message: `ML classifier flagged flock status as Critical (confidence ${(prediction.confidence * 100).toFixed(0)}%)`,
+      source: 'ml-classifier',
+    });
+  }
 }
 
 async function postFeed(req, res) {

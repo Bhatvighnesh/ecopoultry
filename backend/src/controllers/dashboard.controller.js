@@ -8,16 +8,20 @@ const { getAllCurrentStates } = require('../services/actuator.service');
 const { getAllStatuses } = require('../services/staleData.service');
 const { nodeIdFilter } = require('../services/source');
 
+// Anything older than this is treated as "no device connected" and not shown as current.
+const CURRENT_WINDOW_MS = 10 * 60 * 1000;
+
 /** One aggregated snapshot for the live dashboard. Everything here is derived
  * from continuously-arriving sensor data - nothing is user-entered. */
 async function getSummary(req, res) {
   const settings = await getSettings();
   const source = req.query.source === 'demo' ? 'demo' : 'live';
   const filter = nodeIdFilter(source);
+  const since = new Date(Date.now() - CURRENT_WINDOW_MS);
 
   const [latestEnv, latestPrediction, wasteRate, actuatorStates] = await Promise.all([
-    EnvironmentReading.findOne(filter).sort({ createdAt: -1 }).lean(),
-    ProductivityPrediction.findOne({ source }).sort({ createdAt: -1 }).lean(),
+    EnvironmentReading.findOne({ ...filter, createdAt: { $gte: since } }).sort({ createdAt: -1 }).lean(),
+    ProductivityPrediction.findOne({ source, createdAt: { $gte: since } }).sort({ createdAt: -1 }).lean(),
     getLiveWasteRate(2, filter),
     getAllCurrentStates(),
   ]);

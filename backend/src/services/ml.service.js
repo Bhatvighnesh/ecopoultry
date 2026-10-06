@@ -9,7 +9,7 @@ const axios = require('axios');
 async function predictProductivity(features) {
   const baseUrl = process.env.ML_SERVICE_URL || 'http://localhost:5001';
   try {
-    const { data } = await axios.post(`${baseUrl}/predict`, features, { timeout: 3000 });
+    const { data } = await axios.post(`${baseUrl}/predict`, features, { timeout: 15000 });
     return data; // { classification, confidence, featureImportances }
   } catch (err) {
     console.error('[ml.service] prediction failed:', err.message);
