@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { HeartPulse, Egg, Gauge, FlaskConical, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
 import apiClient from '../api/client';
 import { useLiveData } from '../context/LiveDataContext';
@@ -15,6 +16,8 @@ function toInputDate(d) {
 
 export default function Productivity() {
   const { productivity } = useLiveData();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const source = searchParams.get('source') === 'demo' ? 'demo' : 'live';
 
   const [from, setFrom] = useState(() => toInputDate(new Date(Date.now() - 7 * 86400000)));
   const [to, setTo] = useState(() => toInputDate(new Date()));
@@ -26,19 +29,23 @@ export default function Productivity() {
   const [freshnessResult, setFreshnessResult] = useState(null);
 
   const loadPeriodData = useCallback(async () => {
-    const params = { from: new Date(from).toISOString(), to: new Date(`${to}T23:59:59`).toISOString() };
+    const params = {
+      from: new Date(from).toISOString(),
+      to: new Date(`${to}T23:59:59`).toISOString(),
+      source,
+    };
     const [fcrRes, hdRes] = await Promise.all([
       apiClient.get('/api/productivity/fcr', { params }),
       apiClient.get('/api/productivity/henday', { params }),
     ]);
     setFcr(fcrRes.data);
     setHenDay(hdRes.data);
-  }, [from, to]);
+  }, [from, to, source]);
 
   const loadPredictions = useCallback(async () => {
-    const { data } = await apiClient.get('/api/productivity/predictions', { params: { limit: 20 } });
+    const { data } = await apiClient.get('/api/productivity/predictions', { params: { limit: 20, source } });
     setPredictions(data.predictions);
-  }, []);
+  }, [source]);
 
   const loadFreshnessTests = useCallback(async () => {
     const { data } = await apiClient.get('/api/sensors/freshness-test', { params: { limit: 20 } });
@@ -76,6 +83,21 @@ export default function Productivity() {
 
   return (
     <div className="page">
+      <div className="source-toggle">
+        <button
+          className={`btn-small ${source === 'live' ? 'active-source' : ''}`}
+          onClick={() => setSearchParams({})}
+        >
+          Live hardware
+        </button>
+        <button
+          className={`btn-small ${source === 'demo' ? 'active-source' : ''}`}
+          onClick={() => setSearchParams({ source: 'demo' })}
+        >
+          Synthetic data
+        </button>
+      </div>
+
       <section className="panel">
         <div className="panel-header">
           <h2>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LiveDataProvider } from './context/LiveDataContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -33,6 +33,11 @@ function AppLayout({ children }) {
   );
 }
 
+function SourceProvider({ children }) {
+  const [params] = useSearchParams();
+  return <LiveDataProvider source={params.get('source') === 'demo' ? 'demo' : 'live'}>{children}</LiveDataProvider>;
+}
+
 function AuthedApp() {
   const { user } = useAuth();
   if (!user) {
@@ -62,9 +67,11 @@ function AuthedApp() {
           path="/productivity"
           element={
             <ProtectedRoute>
-              <AppLayout>
-                <Productivity />
-              </AppLayout>
+              <SourceProvider>
+                <AppLayout>
+                  <Productivity />
+                </AppLayout>
+              </SourceProvider>
             </ProtectedRoute>
           }
         />

@@ -454,6 +454,8 @@ main.content { padding: 1.5rem; max-width: 1180px; width: 100%; margin: 0 auto; 
   gap: 0.35rem;
 }
 .btn-small:hover { background: var(--gray-50); }
+.btn-small.active-source { background: var(--brand-light); color: var(--brand-dark); border-color: var(--brand); }
+.source-toggle { display: flex; gap: 0.5rem; }
 
 .data-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.87rem; }
 .data-table th {

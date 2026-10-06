@@ -17,8 +17,8 @@ function computeHenDayPercent(eggEventCount, flockSize, daysElapsed) {
   return Number(percent.toFixed(2));
 }
 
-async function getFCRForPeriod(from, to, weightGainKg) {
-  const feedConsumedKg = await getFeedConsumedKg(from, to);
+async function getFCRForPeriod(from, to, weightGainKg, filter = {}) {
+  const feedConsumedKg = await getFeedConsumedKg(from, to, filter);
   const result = computeFCR(feedConsumedKg, weightGainKg);
   return { feedConsumedKg: Number(feedConsumedKg.toFixed(3)), weightGainKg, ...result };
 }
