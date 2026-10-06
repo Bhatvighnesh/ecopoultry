@@ -12,11 +12,13 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler);
 
-const GRID_COLOR = '#eef1ee';
-const TEXT_COLOR = '#5b6b60';
-
 /** Generic live trend chart. `series` is [{ label, data: number[], color }]. */
 export default function LiveChart({ labels, series, height = 240 }) {
+  const dark = document.documentElement.dataset.theme !== 'light';
+  const GRID_COLOR = dark ? '#2a372e' : '#eef1ee';
+  const TEXT_COLOR = dark ? '#aebfb4' : '#5b6b60';
+  const TOOLTIP_BG = dark ? '#0c120f' : '#16211a';
+
   const data = {
     labels,
     datasets: series.map((s) => ({
@@ -51,7 +53,7 @@ export default function LiveChart({ labels, series, height = 240 }) {
         labels: { color: TEXT_COLOR, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, font: { family: 'Inter', size: 12 } },
       },
       tooltip: {
-        backgroundColor: '#16211a',
+        backgroundColor: TOOLTIP_BG,
         titleFont: { family: 'Inter', weight: '600' },
         bodyFont: { family: 'Inter' },
         padding: 10,
