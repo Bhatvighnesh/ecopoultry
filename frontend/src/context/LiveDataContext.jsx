@@ -88,7 +88,6 @@ export function LiveDataProvider({ source = 'live', children }) {
 
     socket.on('alert:new', (alert) => {
       setAlerts((a) => [alert, ...a].slice(0, 50));
-      setToasts((t) => [...t, alert]);
     });
 
     // Periodic refresh covers staleness flags (which need wall-clock time to
