@@ -3,7 +3,6 @@ const ProductivityPrediction = require('../models/ProductivityPrediction');
 const { getSettings } = require('../services/settings.service');
 const { classifyAmmoniaZone } = require('../services/threshold.service');
 const { getLiveWasteRate } = require('../services/waste.service');
-const { getHenDayForPeriod } = require('../services/productivity.service');
 const { getAllCurrentStates } = require('../services/actuator.service');
 const { getAllStatuses } = require('../services/staleData.service');
 const { nodeIdFilter } = require('../services/source');
@@ -30,9 +29,13 @@ async function getSummary(req, res) {
     ? classifyAmmoniaZone(latestEnv.gas, settings.wasteAmmoniaThresholds)
     : null;
 
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-  const henDay = await getHenDayForPeriod(startOfToday, new Date(), settings.flockSize, filter);
+  const [activityAgg] = latestEnv
+    ? await EnvironmentReading.aggregate([
+        { $match: { ...filter, createdAt: { $gte: new Date(Date.now() - 60 * 60 * 1000) } } },
+        { $group: { _id: null, avgActivity: { $avg: '$activity' } } },
+      ])
+    : [];
+  const avgActivity = activityAgg ? Number(activityAgg.avgActivity.toFixed(1)) : null;
 
   const staleness = getAllStatuses(['environment', 'feed', 'waste', 'egg']);
 
@@ -40,7 +43,7 @@ async function getSummary(req, res) {
     environment: latestEnv,
     ammoniaZone,
     wasteRate,
-    henDay,
+    avgActivity,
     actuatorStates,
     productivity: latestPrediction,
     staleness,

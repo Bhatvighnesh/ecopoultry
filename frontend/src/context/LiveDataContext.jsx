@@ -22,7 +22,7 @@ export function LiveDataProvider({ source = 'live', children }) {
   const [ammoniaZone, setAmmoniaZone] = useState(null);
   const [envHistory, setEnvHistory] = useState([]);
   const [wasteRate, setWasteRate] = useState(null);
-  const [henDay, setHenDay] = useState(null);
+  const [avgActivity, setAvgActivity] = useState(null);
   const [actuatorStates, setActuatorStates] = useState({ fan: 'off', heater: 'off' });
   const [productivity, setProductivity] = useState(null);
   const [staleness, setStaleness] = useState({});
@@ -40,7 +40,7 @@ export function LiveDataProvider({ source = 'live', children }) {
     setEnvironment(data.environment);
     setAmmoniaZone(data.ammoniaZone);
     setWasteRate(data.wasteRate);
-    setHenDay(data.henDay);
+    setAvgActivity(data.avgActivity);
     setActuatorStates(data.actuatorStates);
     setProductivity(data.productivity);
     setStaleness(data.staleness);
@@ -74,10 +74,6 @@ export function LiveDataProvider({ source = 'live', children }) {
       if (isMine(reading.nodeId)) setWasteRate(rate);
     });
 
-    socket.on('egg:new', ({ event, henDay: hd }) => {
-      if (isMine(event.nodeId)) setHenDay(hd);
-    });
-
     socket.on('actuator:update', (entry) => {
       setActuatorStates((prev) => ({ ...prev, [entry.device]: entry.state }));
     });
@@ -107,7 +103,7 @@ export function LiveDataProvider({ source = 'live', children }) {
     ammoniaZone,
     envHistory,
     wasteRate,
-    henDay,
+    avgActivity,
     actuatorStates,
     productivity,
     staleness,

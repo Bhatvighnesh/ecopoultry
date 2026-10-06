@@ -8,7 +8,6 @@ import {
   Trash2,
   Flame,
   Sprout,
-  Egg,
   CloudFog,
   ShieldCheck,
   AlertTriangle,
@@ -51,7 +50,7 @@ export default function Dashboard() {
     ammoniaZone,
     envHistory,
     wasteRate,
-    henDay,
+    avgActivity,
     actuatorStates,
     staleness,
     alerts,
@@ -195,11 +194,11 @@ export default function Dashboard() {
       <section>
         <div className="card-grid">
           <StatCard
-            label="Hen-Day Production (today)"
-            value={henDay ? henDay.henDayPercent : null}
-            unit="%"
-            sub={henDay ? `${henDay.eggEventCount} eggs today` : ''}
-            icon={Egg}
+            label="Average Activity (last hour)"
+            value={avgActivity}
+            unit="/min"
+            sub="PIR movement events per minute"
+            icon={Activity}
           />
         </div>
       </section>
