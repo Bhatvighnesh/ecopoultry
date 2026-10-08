@@ -8,7 +8,7 @@ function signToken(user) {
 }
 
 function sanitize(user) {
-  return { id: user._id, name: user.name, email: user.email, role: user.role };
+  return { id: user._id, name: user.name, email: user.email, role: user.role, active: user.active };
 }
 
 async function login(req, res) {
