@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { HeartPulse, Egg, Gauge, FlaskConical, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
+import { HeartPulse, Gauge, FlaskConical, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
 import apiClient from '../api/client';
 import { useLiveData } from '../context/LiveDataContext';
 import StatCard from '../components/StatCard';
@@ -22,7 +22,6 @@ export default function Productivity() {
   const [from, setFrom] = useState(() => toInputDate(new Date(Date.now() - 7 * 86400000)));
   const [to, setTo] = useState(() => toInputDate(new Date()));
   const [fcr, setFcr] = useState(null);
-  const [henDay, setHenDay] = useState(null);
   const [predictions, setPredictions] = useState([]);
   const [freshnessTests, setFreshnessTests] = useState([]);
   const [testingFreshness, setTestingFreshness] = useState(false);
@@ -34,12 +33,8 @@ export default function Productivity() {
       to: new Date(`${to}T23:59:59`).toISOString(),
       source,
     };
-    const [fcrRes, hdRes] = await Promise.all([
-      apiClient.get('/api/productivity/fcr', { params }),
-      apiClient.get('/api/productivity/henday', { params }),
-    ]);
-    setFcr(fcrRes.data);
-    setHenDay(hdRes.data);
+    const { data } = await apiClient.get('/api/productivity/fcr', { params });
+    setFcr(data);
   }, [from, to, source]);
 
   const loadPredictions = useCallback(async () => {
@@ -118,6 +113,7 @@ export default function Productivity() {
             {latestFeatureImportances && (
               <div className="importance-bars">
                 {Object.entries(latestFeatureImportances)
+                  .filter(([key]) => key !== 'feedTrend')
                   .sort((a, b) => b[1] - a[1])
                   .map(([key, val]) => (
                     <div key={key} className="importance-row">
@@ -162,13 +158,6 @@ export default function Productivity() {
           badgeLabel={fcr?.classification}
           sub={fcr ? `feed ${fcr.feedConsumedKg}kg / gain ${fcr.weightGainKg}kg` : ''}
           icon={Gauge}
-        />
-        <StatCard
-          label="Hen-Day Production"
-          value={henDay?.henDayPercent ?? null}
-          unit="%"
-          sub={henDay ? `${henDay.eggEventCount} eggs / ${henDay.flockSize} birds over ${henDay.daysElapsed} days` : ''}
-          icon={Egg}
         />
       </div>
 
