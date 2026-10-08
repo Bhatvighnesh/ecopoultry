@@ -1,41 +1,22 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { HeartPulse, Gauge, FlaskConical, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
+import { HeartPulse, FlaskConical, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
 import apiClient from '../api/client';
 import { useLiveData } from '../context/LiveDataContext';
-import StatCard from '../components/StatCard';
 
-const FCR_STATUS = { Efficient: 'safe', Average: 'warning', 'Needs Attention': 'critical' };
 const PRED_STATUS = { Healthy: 'safe', Watch: 'warning', Critical: 'critical' };
 const PRED_ICON = { Healthy: ShieldCheck, Watch: ShieldAlert, Critical: ShieldX };
 const FRESHNESS_STATUS = { Fresh: 'safe', 'Check Before Use': 'warning', Stale: 'critical' };
-
-function toInputDate(d) {
-  return d.toISOString().slice(0, 10);
-}
 
 export default function Productivity() {
   const { productivity } = useLiveData();
   const [searchParams, setSearchParams] = useSearchParams();
   const source = searchParams.get('source') === 'demo' ? 'demo' : 'live';
 
-  const [from, setFrom] = useState(() => toInputDate(new Date(Date.now() - 7 * 86400000)));
-  const [to, setTo] = useState(() => toInputDate(new Date()));
-  const [fcr, setFcr] = useState(null);
   const [predictions, setPredictions] = useState([]);
   const [freshnessTests, setFreshnessTests] = useState([]);
   const [testingFreshness, setTestingFreshness] = useState(false);
   const [freshnessResult, setFreshnessResult] = useState(null);
-
-  const loadPeriodData = useCallback(async () => {
-    const params = {
-      from: new Date(from).toISOString(),
-      to: new Date(`${to}T23:59:59`).toISOString(),
-      source,
-    };
-    const { data } = await apiClient.get('/api/productivity/fcr', { params });
-    setFcr(data);
-  }, [from, to, source]);
 
   const loadPredictions = useCallback(async () => {
     const { data } = await apiClient.get('/api/productivity/predictions', { params: { limit: 20, source } });
@@ -46,10 +27,6 @@ export default function Productivity() {
     const { data } = await apiClient.get('/api/sensors/freshness-test', { params: { limit: 20 } });
     setFreshnessTests(data.tests);
   }, []);
-
-  useEffect(() => {
-    loadPeriodData().catch((err) => console.error(err));
-  }, [loadPeriodData]);
 
   useEffect(() => {
     loadPredictions().catch((err) => console.error(err));
@@ -135,31 +112,6 @@ export default function Productivity() {
           <p className="empty-state">No classification yet.</p>
         )}
       </section>
-
-      <section className="panel">
-        <div className="panel-header">
-          <h2>Reporting Period</h2>
-        </div>
-        <div className="date-range-row">
-          <label>
-            From <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-          </label>
-          <label>
-            To <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-          </label>
-        </div>
-      </section>
-
-      <div className="card-grid">
-        <StatCard
-          label="FCR"
-          value={fcr?.fcr ?? null}
-          status={fcr?.classification ? FCR_STATUS[fcr.classification] : undefined}
-          badgeLabel={fcr?.classification}
-          sub={fcr ? `feed ${fcr.feedConsumedKg}kg / gain ${fcr.weightGainKg}kg` : ''}
-          icon={Gauge}
-        />
-      </div>
 
       <section className="panel">
         <div className="panel-header">
